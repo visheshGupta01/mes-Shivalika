@@ -43,7 +43,6 @@ const Login = () => {
         className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg"
       >
         <h2 className="text-2xl font-semibold mb-6">Login</h2>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
         <div className="mb-4">
           <label className="block text-gray-700">Username</label>
           <input
@@ -64,6 +63,7 @@ const Login = () => {
             required
           />
         </div>
+        {error && <p className="text-red-500 text-center">{error}</p>}
         <button
           type="submit"
           className="w-full p-2 bg-blue-500 text-white rounded mt-4"

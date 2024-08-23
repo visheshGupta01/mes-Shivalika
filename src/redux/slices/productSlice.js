@@ -1,3 +1,5 @@
+//productSlice.js
+
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../api/axiosConfig";
 
@@ -35,6 +37,7 @@ export const importProducts = createAsyncThunk(
 export const addStyleProcesses = createAsyncThunk(
   "style/addStyleProcesses",
   async (styles) => {
+    console.log(styles)
     const response = await api.post("product/addStyleProcesses", styles);
     return response.data;
   }

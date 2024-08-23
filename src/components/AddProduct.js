@@ -1,3 +1,5 @@
+//AddProduct.js
+
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -7,7 +9,7 @@ import {
 } from "../redux/slices/productSlice";
 import { fetchBuyers, createBuyer } from "../redux/slices/buyerSlice";
 import { addOrder } from "../redux/slices/orderSlice";
-import LoadingSpinner from "./loadingSpinner";
+import LoadingSpinner from "../components/loadingSpinner"; // Import the LoadingSpinner component
 
 const AddProduct = () => {
   const [product, setProduct] = useState({
@@ -28,11 +30,11 @@ const AddProduct = () => {
   const [filteredBuyers, setFilteredBuyers] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [newStyles, setNewStyles] = useState([]);
-  const [selectedProcesses, setSelectedProcesses] = useState({});
-  const [loading, setLoading] = useState(false); // Add loading state
-  const [processesSubmitted, setProcessesSubmitted] = useState(false); // New state to track process submission
 
+  const [selectedProcesses, setSelectedProcesses] = useState({});
+  const [processesSubmitted, setProcessesSubmitted] = useState(false);
   const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false); // Add loading state
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -69,12 +71,13 @@ const AddProduct = () => {
         return;
       }
     }
+
     if (!processesSubmitted) {
       alert("Please submit processes before adding the product.");
       return;
     }
-    setLoading(true); // Set loading to true
 
+    setLoading(true); // Set loading to true
     const processesWithOrder =
       selectedProcesses[product.styleName]?.map((process, index) => ({
         processName: process,
@@ -89,50 +92,66 @@ const AddProduct = () => {
       processes: processesWithOrder,
     };
 
-    const addedProduct = await dispatch(addProduct(updatedProduct)).unwrap();
+    try {
+      const addedProduct = await dispatch(addProduct(updatedProduct)).unwrap();
 
-    const orderData = {
-      srNo: product.srNo,
-      buyer: existingBuyer.name,
-      products: [
-        {
-          productId: addedProduct._id,
-          quantity: product.quantity,
-          status: "Pending",
-        },
-      ],
-    };
+      const orderData = {
+        srNo: product.srNo,
+        buyer: existingBuyer.name,
+        products: [
+          {
+            productId: addedProduct._id,
+            quantity: product.quantity,
+            status: "Pending",
+          },
+        ],
+      };
 
-    dispatch(addOrder(orderData));
-    setLoading(false)
+      await dispatch(addOrder(orderData));
+    } catch (error) {
+      console.error("Failed to add product:", error);
+    } finally {
+      setLoading(false); // Set loading to false
+    }
   };
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
-  };
+  };  
 
-  const handleSubmitProcesses = async () => {
-    const stylesWithProcesses = newStyles.map((styleName) => ({
+const handleSubmitProcesses = async () => {
+  console.log("Setting loading to true"); // Debugging log
+  setLoading(true); // Set loading to true before starting the process
+  
+
+  const stylesWithProcesses = Object.keys(selectedProcesses).map(
+    (styleName) => ({
       styleName,
-      processes: Object.keys(selectedProcesses).map((process, index) => ({
+      processes: selectedProcesses[styleName].map((process, index) => ({
         processName: process,
-        entries: [],
-        order: index + 1,
-        completed: false,
+        order: index + 1, // Order in the list
+        completed: false, // Initial completion status
+        entries: [], // Empty array for entries
       })),
-    }));
+    })
+  );
 
-    try {
-      await dispatch(
-        addStyleProcesses({ styles: stylesWithProcesses })
-      ).unwrap();
-      setNewStyles([]);
-      setSelectedProcesses([]);
-      setProcessesSubmitted(true); // Set state to true after successful submission
-    } catch (error) {
-      console.error("Failed to submit processes:", error);
-    }
-  };
+  try {
+    console.log("Submitting styles and processes..."); // Debugging log
+    await dispatch(addStyleProcesses({ styles: stylesWithProcesses })).unwrap();
+
+    console.log("Process submission completed"); // Debugging log
+    setNewStyles([]);
+    setSelectedProcesses({});
+    setProcessesSubmitted(true);
+  } catch (error) {
+    console.error("Failed to submit processes:", error);
+  } finally {
+    console.log("Setting loading to false"); // Debugging log
+    setLoading(false); // Set loading to false after the process is complete
+  }
+};
+
 
   const handleCheckboxChange = (styleName, process, checked) => {
     setSelectedProcesses((prev) => {
@@ -156,10 +175,8 @@ const AddProduct = () => {
   const handleFileUpload = async () => {
     if (file) {
       setLoading(true); // Set loading to true
-
       try {
         const response = await dispatch(importProducts(file)).unwrap();
-        console.log("Import Response:", response); // Add this line
         if (response.styles) {
           setNewStyles(response.styles);
         }
@@ -192,7 +209,9 @@ const AddProduct = () => {
         </button>
         {newStyles.length > 0 && (
           <div>
-            <h3>Enter Processes for New Styles</h3>
+            <h3 className="text-lg font-bold">
+              Enter Processes for New Styles
+            </h3>
             {newStyles.map((styleName) => (
               <div key={styleName}>
                 <h4 className="text-lg font-semibold">{styleName}</h4>

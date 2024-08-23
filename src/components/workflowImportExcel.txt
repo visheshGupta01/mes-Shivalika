@@ -1,0 +1,21 @@
+[
+    1. user imports the excel
+    2. code iterates the products in the excel and checks that if the styleName is present in the database or not [
+        1. if it is there then it iterates through each process of that styleName
+        2. It checks whether that process and that size combination has productionPerDayPerMachine value in the database or not [
+          1. If it is there then it fetches that value and push it into the product
+          2. Then it checks the order collection of the database whether it has order from that srNo or not [
+            1. If it has then adds that product to that order and also pushes the product to products collection
+            2.If it does not have that order then it creates it and then pushes the products into it and also pushes the product to products collection
+          ]
+        ]
+        [
+            1. If it is not there then it asks me to enter the productionPerDayPerMachine for that combination
+            2. Then it pushes the entered value to the database in the production collection and also adds it to the product from which the combination was taken from
+            3. 
+        ]
+    ]
+    [
+        1.If it is not there 
+    ]
+]

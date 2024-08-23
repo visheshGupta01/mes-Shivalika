@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../api/axiosConfig";
 
 export const fetchOrders = createAsyncThunk("orders/fetchOrders", async () => {
-  const response = await api.get("/product/orders");
+  const response = await api.get("/product/sortedOrders");
   return response.data;
 });
 
@@ -14,22 +14,20 @@ export const addOrder = createAsyncThunk("orders/addOrder", async (order) => {
 const orderSlice = createSlice({
   name: "orders",
   initialState: {
-    items: [],
-    status: "idle",
+    orders: [],
     error: null,
   },
   reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(fetchOrders.pending, (state) => {
-        state.status = "loading";
+                  state.error = null;
+
       })
       .addCase(fetchOrders.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        state.items = action.payload;
+        state.orders = action.payload;
       })
       .addCase(fetchOrders.rejected, (state, action) => {
-        state.status = "failed";
         state.error = action.error.message;
       })
       .addCase(addOrder.fulfilled, (state, action) => {

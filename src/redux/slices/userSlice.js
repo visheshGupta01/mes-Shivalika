@@ -7,8 +7,7 @@ export const createUser = createAsyncThunk(
   "user/createUser",
   async (userData, thunkAPI) => {
     try {
-      const state = thunkAPI.getState();
-      const token = state.auth.token; // Retrieve token from state
+      const token = sessionStorage.getItem("token"); 
       console.log("Token sent in headers:", token); // Log the token being sent      console.log("Token sent in headers:", token); // Log the token being sent
 
       const response = await api.post("/auth/create", userData, {
