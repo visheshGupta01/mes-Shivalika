@@ -15,9 +15,9 @@ const ProductionData = () => {
   const products = useSelector((state) => state.production.filteredProducts);
   const [selectedProcess, setSelectedProcess] = useState("");
   const [editValues, setEditValues] = useState({});
-    const [missingSizes, setMissingSizes] = useState([]);
-    const [productionEntries, setProductionEntries] = useState({});
-    const [showInputModal, setShowInputModal] = useState(false);
+  const [missingSizes, setMissingSizes] = useState([]);
+  const [productionEntries, setProductionEntries] = useState({});
+  const [showInputModal, setShowInputModal] = useState(false);
   const [filterDialog, setFilterDialog] = useState({
     visible: false,
     column: "",
@@ -67,22 +67,22 @@ const ProductionData = () => {
     setFilterDialog({ visible: false, column: "", position: { x: 0, y: 0 } });
   };
 
- const handleProcessChange = async (e) => {
-   const processName = e.target.value;
-   setSelectedProcess(processName);
+  const handleProcessChange = async (e) => {
+    const processName = e.target.value;
+    setSelectedProcess(processName);
 
-   // Dispatch to filter products by selected process
-   dispatch(filterProductsByProcess(processName));
+    // Dispatch to filter products by selected process
+    dispatch(filterProductsByProcess(processName));
 
-   // Check for missing production data
-   const missingSizes = checkMissingProductionData(processName);
-   setMissingSizes(missingSizes);
+    // Check for missing production data
+    const missingSizes = checkMissingProductionData(processName);
+    setMissingSizes(missingSizes);
 
-   // If missing sizes are found, show the modal to enter production data
-   if (missingSizes.length > 0) {
-     setShowInputModal(true);
-   }
- };
+    // If missing sizes are found, show the modal to enter production data
+    if (missingSizes.length > 0) {
+      setShowInputModal(true);
+    }
+  };
   const handleProductionInputChange = (size, value) => {
     setProductionEntries((prevEntries) => ({
       ...prevEntries,
@@ -90,36 +90,36 @@ const ProductionData = () => {
     }));
   };
 
-      const handleSaveProductionData = async () => {
-        try {
-          await saveProductionData(selectedProcess, productionEntries);
-          setShowInputModal(false);
-          setProductionEntries({});
-        } catch (error) {
-          console.error("Failed to save production data", error);
-        }
-      };
-const checkMissingProductionData = (processName) => {
-  const missingSizes = [];
-
-  products.forEach((product) => {
-    const process = product.processes.find(
-      (process) => process.processName === processName
-    );
-
-    if (process) {
-      if (
-        process.productionPerDayPerMachine === null ||
-        process.productionPerDayPerMachine === undefined
-      ) {
-        missingSizes.push(product.size);
-      }
+  const handleSaveProductionData = async () => {
+    try {
+      await saveProductionData(selectedProcess, productionEntries);
+      setShowInputModal(false);
+      setProductionEntries({});
+    } catch (error) {
+      console.error("Failed to save production data", error);
     }
-    console.log(missingSizes)
-  });
+  };
+  const checkMissingProductionData = (processName) => {
+    const missingSizes = [];
+
+    products.forEach((product) => {
+      const process = product.processes.find(
+        (process) => process.processName === processName
+      );
+
+      if (process) {
+        if (
+          process.productionPerDayPerMachine === null ||
+          process.productionPerDayPerMachine === undefined
+        ) {
+          missingSizes.push(product.size);
+        }
+      }
+      console.log(missingSizes);
+    });
 
     return [...new Set(missingSizes)];
-};
+  };
 
   const saveProductionData = async (processName, enteredData) => {
     try {
@@ -130,9 +130,9 @@ const checkMissingProductionData = (processName) => {
 
       for (const [size, value] of Object.entries(enteredData)) {
         const filteredProductsBySizes = products.filter((p) => p.size === size);
-        console.log(filteredProductsBySizes)
-          if (filteredProductsBySizes) {
-                    console.log(filteredProductsBySizes);
+        console.log(filteredProductsBySizes);
+        if (filteredProductsBySizes) {
+          console.log(filteredProductsBySizes);
           await updateProductionPerDayPerMachine(
             filteredProductsBySizes,
             processName,
@@ -147,22 +147,22 @@ const checkMissingProductionData = (processName) => {
     }
   };
 
- const updateProductionPerDayPerMachine = async (
-   filteredProductsBySizes,
-   processName,
-   newProductionValue
- ) => {
-   try {
-     await api.post("/productionData/updateProductionPerDayPerMachine", {
-       filteredProductsBySizes,
-       processName,
-       productionPerDayPerMachine: newProductionValue,
-     });
-     dispatch(fetchProducts());
-   } catch (error) {
-     console.error("Failed to update production per day per machine", error);
-   }
- };
+  const updateProductionPerDayPerMachine = async (
+    filteredProductsBySizes,
+    processName,
+    newProductionValue
+  ) => {
+    try {
+      await api.post("/productionData/updateProductionPerDayPerMachine", {
+        filteredProductsBySizes,
+        processName,
+        productionPerDayPerMachine: newProductionValue,
+      });
+      dispatch(fetchProducts());
+    } catch (error) {
+      console.error("Failed to update production per day per machine", error);
+    }
+  };
 
   const handleInputChange = (processId, date, value) => {
     setEditValues({
@@ -190,7 +190,7 @@ const checkMissingProductionData = (processName) => {
   };
 
   const filteredProducts = products
-      .filter((product) => !product.completed) // Exclude completed products
+    .filter((product) => !product.completed) // Exclude completed products
     .filter((product) => {
       return (
         (filterValues.srNo === "" ||
@@ -251,7 +251,7 @@ const checkMissingProductionData = (processName) => {
         </select>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto overflow-y-auto max-h-dvh ">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -347,8 +347,7 @@ const checkMissingProductionData = (processName) => {
                           (new Date(process.endDate) - Date.now()) /
                             (1000 * 60 * 60 * 24)
                         );
-                        const perDay =
-                          process.productionPerDayPerMachine || 0;
+                        const perDay = process.productionPerDayPerMachine || 0;
                         const machinesNeeded = perDay
                           ? Math.ceil(totalRemaining / (perDay * daysRemaining))
                           : "N/A";

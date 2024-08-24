@@ -1,11 +1,11 @@
 // src/api/axiosConfig.js
 
 import axios from "axios";
+const apiUrl = process.env.REACT_APP_API_URL;
 
 const api = axios.create({
   baseURL:
-    process.env.REACT_APP_API_URL ||
-    "https://mes-shivalika-backend.onrender.com", // Use the environment variable
+   apiUrl, // Use the environment variable
 });
 
 export default api;
