@@ -6,16 +6,22 @@ import {
   filterProductsByProcess,
 } from "../redux/slices/productionSlice";
 import api from "../api/axiosConfig";
+import LoadingSpinner from "./loadingSpinner";
 
 const ProductionData = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const userRole = user.userType;
-  const processes = useSelector((state) => state.processes.processes);
   const products = useSelector((state) => state.production.filteredProducts);
+  const processes = useSelector((state) => state.processes.processes);
+  const machinesCapacities = useSelector(
+    (state) => state.machinesCapacity.machinesCapacity
+  );
   const [selectedProcess, setSelectedProcess] = useState("");
   const [editValues, setEditValues] = useState({});
+  const [loading, setLoading] = useState(false);
   const [missingSizes, setMissingSizes] = useState([]);
+  const [highlightedInput, setHighlightedInput] = useState(null);
   const [productionEntries, setProductionEntries] = useState({});
   const [showInputModal, setShowInputModal] = useState(false);
   const [filterDialog, setFilterDialog] = useState({
@@ -34,8 +40,13 @@ const ProductionData = () => {
   const dialogRef = useRef(null);
 
   useEffect(() => {
-    dispatch(fetchProducts());
+    const fetchData = async () => {
+      setLoading(true);
+      await dispatch(fetchProducts());
+      setLoading(false);
+    };
 
+    fetchData();
     const handleClickOutside = (event) => {
       if (dialogRef.current && !dialogRef.current.contains(event.target)) {
         closeDialog();
@@ -48,6 +59,30 @@ const ProductionData = () => {
     };
   }, [dispatch]);
 
+  const getWeekdays = () => {
+    const today = new Date();
+    const currentDay = today.getDay(); // Get the current day of the week (0 for Sunday, 1 for Monday, etc.)
+
+    // Calculate how many days to subtract to get to Monday
+    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay;
+
+    const monday = new Date();
+    monday.setDate(today.getDate() + mondayOffset); // Set to Monday
+
+    const weekdays = [];
+    for (let i = 0; i < 6; i++) {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + i);
+      weekdays.push(
+        date.toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "short",
+        })
+      );
+    }
+
+    return weekdays;
+  };
   const handleHeaderClick = (column, event) => {
     const rect = event.target.getBoundingClientRect();
     setFilterDialog({
@@ -70,17 +105,25 @@ const ProductionData = () => {
   const handleProcessChange = async (e) => {
     const processName = e.target.value;
     setSelectedProcess(processName);
+    setLoading(true); // Set loading to true immediately
+    console.log("Loading state set to true"); // This should appear in the console
 
-    // Dispatch to filter products by selected process
-    dispatch(filterProductsByProcess(processName));
+    try {
+      // Dispatch to filter products by selected process
+      await dispatch(filterProductsByProcess(processName));
 
-    // Check for missing production data
-    const missingSizes = checkMissingProductionData(processName);
-    setMissingSizes(missingSizes);
+      // Check for missing production data
+      const missingSizes = checkMissingProductionData(processName);
+      setMissingSizes(missingSizes);
 
-    // If missing sizes are found, show the modal to enter production data
-    if (missingSizes.length > 0) {
-      setShowInputModal(true);
+      // If missing sizes are found, show the modal to enter production data
+      if (missingSizes.length > 0) {
+        setShowInputModal(true);
+      }
+    } catch (error) {
+      console.error("Error changing process:", error);
+    } finally {
+      setLoading(false); // Stop loading after all operations are done
     }
   };
   const handleProductionInputChange = (size, value) => {
@@ -91,12 +134,15 @@ const ProductionData = () => {
   };
 
   const handleSaveProductionData = async () => {
+    setLoading(true);
     try {
       await saveProductionData(selectedProcess, productionEntries);
       setShowInputModal(false);
       setProductionEntries({});
     } catch (error) {
       console.error("Failed to save production data", error);
+    } finally {
+      setLoading(false);
     }
   };
   const checkMissingProductionData = (processName) => {
@@ -123,6 +169,7 @@ const ProductionData = () => {
 
   const saveProductionData = async (processName, enteredData) => {
     try {
+      setLoading(true);
       await api.post("/productionData/addProduction", {
         processName,
         productionData: enteredData,
@@ -144,8 +191,16 @@ const ProductionData = () => {
       dispatch(fetchProducts());
     } catch (error) {
       console.error("Failed to save production data", error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (products) {
+      console.log(products);
+    }
+  }, [products]);
 
   const updateProductionPerDayPerMachine = async (
     filteredProductsBySizes,
@@ -153,6 +208,7 @@ const ProductionData = () => {
     newProductionValue
   ) => {
     try {
+      setLoading(true);
       await api.post("/productionData/updateProductionPerDayPerMachine", {
         filteredProductsBySizes,
         processName,
@@ -161,6 +217,8 @@ const ProductionData = () => {
       dispatch(fetchProducts());
     } catch (error) {
       console.error("Failed to update production per day per machine", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -174,7 +232,7 @@ const ProductionData = () => {
   const calculateDaysRemaining = (startDate, endDate) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
-    let daysRemaining = 1;
+    let daysRemaining = 0;
 
     while (start <= end) {
       const dayOfWeek = start.getDay();
@@ -215,7 +273,13 @@ const ProductionData = () => {
       if (quantity !== undefined) {
         dispatch(
           updateProductionEntry({ id: productId, processId, date, quantity })
-        );
+        ).then(() => {
+          // Set the highlighted input when the update is successful
+          setHighlightedInput(`${processId}_${date}`);
+
+          // Remove the highlight after 2 seconds
+          setTimeout(() => setHighlightedInput(null), 2000);
+        });
       }
     }
   };
@@ -227,8 +291,14 @@ const ProductionData = () => {
     return !entry;
   };
 
+  // Capacity Planning Variables
+  let accumulatedMachines = 0;
+  const machineCapacity = machinesCapacities[selectedProcess] || Infinity;
+  let underlineShown = false; // Flag to track whether the underline has been shown
+
   return (
     <div className="p-4 bg-gray-100">
+      {loading && <LoadingSpinner />} {/* Show LoadingSpinner when loading */}
       <div className="mb-4">
         <label
           htmlFor="processSelect"
@@ -250,91 +320,64 @@ const ProductionData = () => {
           ))}
         </select>
       </div>
-
-      <div className="overflow-x-auto overflow-y-auto max-h-dvh ">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Start Date
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                End Date
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Days Remaining
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Per Day Production
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Machines Needed
-              </th>
+      <div className="overflow-x-auto max-h-screen bg-white shadow-lg rounded-lg">
+        <table className="min-w-full text-center bg-white border border-gray-300 rounded-lg overflow-hidden">
+          <thead className="bg-gray-100">
+            <tr className="bg-gray-200 text-gray-600 text-xs leading-normal">
+              <th className="py-2 px-3 sticky top-0 z-10 ">Start Date</th>
+              <th className="py-2 px-3 sticky top-0 z-10">End Date</th>
+              <th className="py-2 px-3 sticky top-0 z-10">Days</th>
+              <th className="py-2 px-3 sticky top-0 z-10">Per Day Prod.</th>
+              <th className="py-2 px-3 sticky top-0 z-10">Mach. Plan</th>
               <th
                 onClick={(e) => handleHeaderClick("srNo", e)}
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer relative"
+                className="py-2 px-3 sticky top-0 z-10 cursor-pointer"
               >
                 SR No
               </th>
               <th
                 onClick={(e) => handleHeaderClick("buyer", e)}
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer relative"
+                className="py-2 px-3 sticky top-0 z-10 cursor-pointer"
               >
                 Buyer
               </th>
               <th
                 onClick={(e) => handleHeaderClick("buyerPO", e)}
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer relative"
+                className="py-2 px-3 sticky top-0 z-10 cursor-pointer"
               >
                 Buyer PO
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Color
-              </th>
+              <th className="py-2 px-3 sticky top-0 z-10">Color</th>
               <th
                 onClick={(e) => handleHeaderClick("exFactoryDate", e)}
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer relative"
+                className="py-2 px-3 sticky top-0 z-10 cursor-pointer"
               >
                 Ex-Factory Date
               </th>
               <th
                 onClick={(e) => handleHeaderClick("styleName", e)}
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer relative"
+                className="py-2 px-3 sticky top-0 z-10 cursor-pointer"
               >
-                Style Name
+                Style
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Size
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Quantity
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Total Produced
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Total Remaining
-              </th>
-              {[...Array(6).keys()].map((day) => (
+              <th className="py-2 px-3 sticky top-0 z-10">Size</th>
+              <th className="py-2 px-3 sticky top-0 z-10">Qty.</th>
+              <th className="py-2 px-3 sticky top-0 z-10">Total Prod.</th>
+              <th className="py-2 px-3 sticky top-0 z-10">Bal. Qty.</th>
+              {getWeekdays().map((date, index) => (
                 <th
-                  key={day}
-                  className="px-6 py-3 text-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  key={index}
+                  className="py-2 px-3 sticky top-0 z-10 whitespace-nowrap"
                 >
-                  {new Date(
-                    Date.now() + day * 24 * 60 * 60 * 1000
-                  ).toLocaleDateString("en-GB", {
-                    day: "numeric",
-                    month: "short",
-                  })}
+                  {date}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredProducts &&
-              filteredProducts.length > 0 &&
-              filteredProducts.map((product) => (
-                <tr key={product._id} className="hover:bg-gray-50">
+          <tbody className="text-gray-600 text-[11px] font-light">
+            {filteredProducts.map((product) => {
+              return (
+                <React.Fragment key={product._id}>
                   {selectedProcess &&
                     product.processes.map((process) => {
                       if (process.processName === selectedProcess) {
@@ -343,18 +386,37 @@ const ProductionData = () => {
                           0
                         );
                         const totalRemaining = product.quantity - totalProduced;
-                        const daysRemaining = Math.ceil(
-                          (new Date(process.endDate) - Date.now()) /
-                            (1000 * 60 * 60 * 24)
+                        const daysRemaining = calculateDaysRemaining(
+                          Date.now(),
+                          process.endDate
                         );
                         const perDay = process.productionPerDayPerMachine || 0;
-                        const machinesNeeded = perDay
-                          ? Math.ceil(totalRemaining / (perDay * daysRemaining))
-                          : "N/A";
+                        const machinesNeeded =
+                          perDay && daysRemaining
+                            ? Math.ceil(
+                                totalRemaining / (perDay * daysRemaining)
+                              )
+                            : "N/A";
 
+                        if (machinesNeeded !== "N/A") {
+                          accumulatedMachines += Number(machinesNeeded);
+                        }
+
+                        const showThickLine =
+                          !underlineShown &&
+                          accumulatedMachines >= machineCapacity;
+
+                        if (showThickLine) {
+                          underlineShown = true; // Set the flag to true once the line is added
+                        }
                         return (
-                          <React.Fragment key={process._id}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <tr
+                            key={process._id}
+                            className={
+                              showThickLine ? "border-b-4 border-red-700" : ""
+                            }
+                          >
+                            <td className="py-2 px-3 font-bold">
                               {process.startDate
                                 ? new Date(
                                     process.startDate
@@ -363,40 +425,40 @@ const ProductionData = () => {
                                     month: "short",
                                   })
                                 : "N/A"}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            </td>{" "}
+                            <td className="py-2 px-3 font-bold">
                               {process.endDate
                                 ? new Date(process.endDate).toLocaleDateString(
                                     "en-GB",
-                                    { day: "numeric", month: "short" }
+                                    {
+                                      day: "numeric",
+                                      month: "short",
+                                    }
                                   )
                                 : "N/A"}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {calculateDaysRemaining(
-                                Date.now(),
-                                process.endDate
-                              )}
+                            <td className="py-2 px-3 font-bold">
+                              {daysRemaining}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="py-2 px-3 font-bold">
                               {process.productionPerDayPerMachine}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="py-2 px-3 font-bold">
                               {machinesNeeded}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="py-2 px-3 font-bold">
                               {product.srNo}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="py-2 px-3 font-bold">
                               {product.buyer}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="py-2 px-3 font-bold">
                               {product.buyerPO}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="py-2 px-3 font-bold">
                               {product.color}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="py-2 px-3 font-bold">
                               {new Date(
                                 product.exFactoryDate
                               ).toLocaleDateString("en-GB", {
@@ -404,19 +466,19 @@ const ProductionData = () => {
                                 month: "short",
                               })}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="py-2 px-3 font-bold">
                               {product.styleName}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="py-2 px-3 font-bold">
                               {product.size}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="py-2 px-3 font-bold">
                               {product.quantity}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {totalProduced}
+                            <td className="py-2 px-3 font-bold">
+                              {process.totalProduction}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td className="py-2 px-3 font-bold">
                               {totalRemaining}
                             </td>
                             {[...Array(6).keys()].map((day) => {
@@ -432,14 +494,15 @@ const ProductionData = () => {
                                 process._id
                               }_${date.toDateString()}`;
                               return (
-                                <td
-                                  key={day}
-                                  className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                                >
+                                <td key={day} className="py-1 px-2 font-bold">
                                   <input
                                     type="text"
                                     inputmode="numeric"
-                                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                    className={`w-full p-1 text-xs border rounded-md focus:outline-none ${
+                                      highlightedInput === inputKey
+                                        ? "bg-green-300 focus:ring-green-500 focus:border-green-500"
+                                        : "border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"
+                                    }`}
                                     value={
                                       editValues[inputKey] !== undefined
                                         ? editValues[inputKey]
@@ -467,13 +530,14 @@ const ProductionData = () => {
                                 </td>
                               );
                             })}
-                          </React.Fragment>
+                          </tr>
                         );
                       }
                       return null;
                     })}
-                </tr>
-              ))}
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>

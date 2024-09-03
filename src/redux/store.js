@@ -8,6 +8,7 @@ import processesSlice from "./slices/processesSlice";
 import buyerSlice from "./slices/buyerSlice";
 import orderSlice from "./slices/orderSlice";
 import productionSlice from "./slices/productionSlice";
+import machinesCapacitySlice from "./slices/machinesCapacitySlice";
 
 const store = configureStore({
   reducer: {
@@ -17,7 +18,8 @@ const store = configureStore({
     processes: processesSlice,
     buyers: buyerSlice,
     orders: orderSlice,
-    production: productionSlice
+    production: productionSlice,
+    machinesCapacity: machinesCapacitySlice
   },
 });
 
