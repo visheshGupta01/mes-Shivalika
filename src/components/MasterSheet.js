@@ -92,7 +92,7 @@ const MasterSheet = () => {
       {/* Second Section: Selected Order's Products */}
       <div className="w-1/4">
         {selectedOrder ? (
-          <table className="min-w-full text-left font-bold text-center text-[11px]">
+          <table className="min-w-full font-bold text-center text-[11px]">
             <thead className="bg-white">
               <tr>
                 <th className="font-semibold p-1 border-b">Style Name</th>
@@ -124,7 +124,7 @@ const MasterSheet = () => {
       {/* Third Section: Selected Product's Processes */}
       <div className="w-2/4">
         {selectedProduct ? (
-          <table className="min-w-full text-left font-bold text-center text-[11px]">
+          <table className="min-w-full font-bold text-center text-[11px]">
             <thead className="bg-white">
               <tr>
                 {selectedProduct.processes.map((process, index) => (

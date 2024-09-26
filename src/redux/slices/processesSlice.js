@@ -15,6 +15,7 @@ const initialState = {
     "Latex",
     "Backing",
     "Filler",
+    "Carpet Tufting"
   ],
 };
 

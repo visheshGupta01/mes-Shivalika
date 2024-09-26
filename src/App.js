@@ -8,6 +8,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import Navbar from "./components/Navbar";
 import AddProduct from "./components/AddProduct";
 import ProductionData from "./components/ProductionData";
+import StylesProductionsPage from "./components/stylesAndProductions";
 
 const App = () => {
   return (
@@ -46,16 +47,14 @@ const App = () => {
             </PrivateRoute>
           }
         />
+        <Route path="/styles-productions" element={
+          <StylesProductionsPage />
+        } />
         <Route
           path="/production-entry"
           element={
             <PrivateRoute
-              allowedUserTypes={[
-                "Admin",
-                "Merchant",
-                "Management",
-                "Process Department",
-              ]}
+              allowedUserTypes={["Admin", "Management", "Process Department"]}
             >
               <ProductionData />
             </PrivateRoute>

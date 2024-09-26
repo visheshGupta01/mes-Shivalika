@@ -14,7 +14,8 @@ const initialState = {
     "Breaded":234,
     "Latex":346,
     "Backing":234,
-    "Filler":245,
+    "Filler": 245,
+        "Carpet Tufting":34
   },
 };
 

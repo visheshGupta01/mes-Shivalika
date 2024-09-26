@@ -9,6 +9,8 @@ import buyerSlice from "./slices/buyerSlice";
 import orderSlice from "./slices/orderSlice";
 import productionSlice from "./slices/productionSlice";
 import machinesCapacitySlice from "./slices/machinesCapacitySlice";
+import styleSlice from "./slices/styleSlice";
+import productionsSlice from "./slices/productionsSlice";
 
 const store = configureStore({
   reducer: {
@@ -19,7 +21,9 @@ const store = configureStore({
     buyers: buyerSlice,
     orders: orderSlice,
     production: productionSlice,
-    machinesCapacity: machinesCapacitySlice
+    machinesCapacity: machinesCapacitySlice,
+    styles: styleSlice,
+    productions: productionsSlice,
   },
 });
 
