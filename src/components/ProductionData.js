@@ -5,7 +5,6 @@ import {
   updateProductionEntry,
   filterProductsByProcess,
 } from "../redux/slices/productionSlice";
-import api from "../api/axiosConfig";
 import LoadingSpinner from "./loadingSpinner";
 
 const ProductionData = () => {
@@ -20,10 +19,7 @@ const ProductionData = () => {
   const [selectedProcess, setSelectedProcess] = useState("");
   const [editValues, setEditValues] = useState({});
   const [loading, setLoading] = useState(false);
-  const [missingSizes, setMissingSizes] = useState([]);
   const [highlightedInput, setHighlightedInput] = useState(null);
-  const [productionEntries, setProductionEntries] = useState({});
-  const [showInputModal, setShowInputModal] = useState(false);
   const [filterDialog, setFilterDialog] = useState({
     visible: false,
     column: "",
@@ -111,88 +107,10 @@ const ProductionData = () => {
     try {
       // Dispatch to filter products by selected process
       await dispatch(filterProductsByProcess(processName));
-
-      // Check for missing production data
-      const missingSizes = checkMissingProductionData(processName);
-      setMissingSizes(missingSizes);
-
-      // If missing sizes are found, show the modal to enter production data
-      if (missingSizes.length > 0) {
-        setShowInputModal(true);
-      }
     } catch (error) {
       console.error("Error changing process:", error);
     } finally {
       setLoading(false); // Stop loading after all operations are done
-    }
-  };
-  const handleProductionInputChange = (size, value) => {
-    setProductionEntries((prevEntries) => ({
-      ...prevEntries,
-      [size]: value,
-    }));
-  };
-
-  const handleSaveProductionData = async () => {
-    setLoading(true);
-    try {
-      await saveProductionData(selectedProcess, productionEntries);
-      setShowInputModal(false);
-      setProductionEntries({});
-    } catch (error) {
-      console.error("Failed to save production data", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  const checkMissingProductionData = (processName) => {
-    const missingSizes = [];
-
-    products.forEach((product) => {
-      const process = product.processes.find(
-        (process) => process.processName === processName
-      );
-
-      if (process) {
-        if (
-          process.productionPerDayPerMachine === null ||
-          process.productionPerDayPerMachine === undefined
-        ) {
-          missingSizes.push(product.size);
-        }
-      }
-      console.log(missingSizes);
-    });
-
-    return [...new Set(missingSizes)];
-  };
-
-  const saveProductionData = async (processName, enteredData) => {
-    try {
-      setLoading(true);
-      await api.post("/productionData/addProduction", {
-        processName,
-        productionData: enteredData,
-      });
-
-      for (const [size, value] of Object.entries(enteredData)) {
-        const filteredProductsBySizes = products.filter((p) => p.size === size);
-        console.log(filteredProductsBySizes);
-        if (filteredProductsBySizes) {
-          console.log(filteredProductsBySizes);
-          await updateProductionPerDayPerMachine(
-            filteredProductsBySizes,
-            processName,
-            value
-          );
-        }
-      }
-
-      dispatch(fetchProducts());
-    } catch (error) {
-      console.error("Failed to save production data", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -201,26 +119,6 @@ const ProductionData = () => {
       console.log(products);
     }
   }, [products]);
-
-  const updateProductionPerDayPerMachine = async (
-    filteredProductsBySizes,
-    processName,
-    newProductionValue
-  ) => {
-    try {
-      setLoading(true);
-      await api.post("/productionData/updateProductionPerDayPerMachine", {
-        filteredProductsBySizes,
-        processName,
-        productionPerDayPerMachine: newProductionValue,
-      });
-      dispatch(fetchProducts());
-    } catch (error) {
-      console.error("Failed to update production per day per machine", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleInputChange = (processId, date, value) => {
     setEditValues({
@@ -320,60 +218,73 @@ const ProductionData = () => {
           ))}
         </select>
       </div>
-      <div className="overflow-x-auto max-h-screen bg-white shadow-lg rounded-lg">
+      <div className="overflow-auto max-h-screen bg-white shadow-lg rounded-lg">
         <table className="min-w-full text-center bg-white border border-gray-300 rounded-lg overflow-hidden">
           <thead className="bg-gray-100">
             <tr className="bg-gray-200 text-gray-600 text-xs leading-normal">
-              <th className="py-2 px-3 sticky top-0 z-10 ">Start Date</th>
-              <th className="py-2 px-3 sticky top-0 z-10">End Date</th>
-              <th className="py-2 px-3 sticky top-0 z-10">Days</th>
-              <th className="py-2 px-3 sticky top-0 z-10">Per Day Prod.</th>
-              <th className="py-2 px-3 sticky top-0 z-10">Mach. Plan</th>
+              <th className="py-2 px-3 sticky top-0 z-20 bg-gray-200">
+                Start Date
+              </th>
+              <th className="py-2 px-3 sticky top-0 z-20 bg-gray-200">
+                End Date
+              </th>
+              <th className="py-2 px-3 sticky top-0 z-20 bg-gray-200">Days</th>
+              <th className="py-2 px-3 sticky top-0 z-20 bg-gray-200">
+                Per Day Prod.
+              </th>
+              <th className="py-2 px-3 sticky top-0 z-20 bg-gray-200">
+                Mach. Plan
+              </th>
               <th
                 onClick={(e) => handleHeaderClick("srNo", e)}
-                className="py-2 px-3 sticky top-0 z-10 cursor-pointer"
+                className="py-2 px-3 sticky top-0 z-20 bg-gray-200 cursor-pointer"
               >
                 SR No
               </th>
               <th
                 onClick={(e) => handleHeaderClick("buyer", e)}
-                className="py-2 px-3 sticky top-0 z-10 cursor-pointer"
+                className="py-2 px-3 sticky top-0 z-20 bg-gray-200 cursor-pointer"
               >
                 Buyer
               </th>
               <th
                 onClick={(e) => handleHeaderClick("buyerPO", e)}
-                className="py-2 px-3 sticky top-0 z-10 cursor-pointer"
+                className="py-2 px-3 sticky top-0 z-20 bg-gray-200 cursor-pointer"
               >
                 Buyer PO
               </th>
-              <th className="py-2 px-3 sticky top-0 z-10">Color</th>
+              <th className="py-2 px-3 sticky top-0 z-20 bg-gray-200">Color</th>
               <th
                 onClick={(e) => handleHeaderClick("exFactoryDate", e)}
-                className="py-2 px-3 sticky top-0 z-10 cursor-pointer"
+                className="py-2 px-3 sticky top-0 z-20 bg-gray-200 cursor-pointer"
               >
                 Ex-Factory Date
               </th>
               <th
                 onClick={(e) => handleHeaderClick("styleName", e)}
-                className="py-2 px-3 sticky top-0 z-10 cursor-pointer"
+                className="py-2 px-3 sticky top-0 z-20 bg-gray-200 cursor-pointer"
               >
                 Style
               </th>
-              <th className="py-2 px-3 sticky top-0 z-10">Size</th>
-              <th className="py-2 px-3 sticky top-0 z-10">Qty.</th>
-              <th className="py-2 px-3 sticky top-0 z-10">Total Prod.</th>
-              <th className="py-2 px-3 sticky top-0 z-10">Bal. Qty.</th>
+              <th className="py-2 px-3 sticky top-0 z-20 bg-gray-200">Size</th>
+              <th className="py-2 px-3 sticky top-0 z-20 bg-gray-200">Qty.</th>
+              <th className="py-2 px-3 sticky top-0 z-20 bg-gray-200">
+                Total Prod.
+              </th>
+              <th className="py-2 px-3 sticky top-0 z-20 bg-gray-200">
+                Bal. Qty.
+              </th>
               {getWeekdays().map((date, index) => (
                 <th
                   key={index}
-                  className="py-2 px-3 sticky top-0 z-10 whitespace-nowrap"
+                  className="py-2 px-3 sticky top-0 z-20 bg-gray-200 whitespace-nowrap"
                 >
                   {date}
                 </th>
               ))}
             </tr>
           </thead>
+
           <tbody className="text-gray-600 text-[11px] font-light">
             {filteredProducts.map((product) => {
               return (
@@ -541,41 +452,6 @@ const ProductionData = () => {
           </tbody>
         </table>
       </div>
-      {/* Modal for entering missing production data */}
-      {showInputModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h2 className="text-lg font-semibold mb-4">
-              Enter Production Data for Missing Sizes
-            </h2>
-            {missingSizes.map((size) => (
-              <div key={size} className="mb-3">
-                <label
-                  htmlFor={`production-${size}`}
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Production for size {size}:
-                </label>
-                <input
-                  type="number"
-                  id={`production-${size}`}
-                  value={productionEntries[size] || ""}
-                  onChange={(e) =>
-                    handleProductionInputChange(size, e.target.value)
-                  }
-                  className="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                />
-              </div>
-            ))}
-            <button
-              onClick={handleSaveProductionData}
-              className="mt-4 bg-indigo-500 text-white px-4 py-2 rounded-md"
-            >
-              Save
-            </button>
-          </div>
-        </div>
-      )}
       {filterDialog.visible && (
         <div
           ref={dialogRef}

@@ -65,7 +65,18 @@ const stylesSlice = createSlice({
       .addCase(submitProcesses.fulfilled, (state, action) => {
         state.submitLoading = false;
         state.submitSuccess = true;
-        // Optionally, you can update the styles list if the backend returns the updated data
+
+        // Assuming the backend returns the updated style
+        const updatedStyle = action.payload.existingStyle;
+console.log(updatedStyle)
+        // Find the index of the style to update
+        const index = state.styles.findIndex(
+          (style) => style.styleName === updatedStyle.styleName
+        );
+console.log(index)
+        if (index !== -1) {
+          state.styles[index] = updatedStyle;
+        }
       })
       .addCase(submitProcesses.rejected, (state, action) => {
         state.submitLoading = false;

@@ -55,7 +55,7 @@ const MasterSheet = () => {
     <div className="flex p-2 space-x-4">
       {loading && <LoadingSpinner />}
       {/* First Section: Orders List */}
-      <div className="w-1/4 h-[calc(100vh-64px)] border-r overflow-y-auto bg-white shadow-lg">
+      <div className="w-1/4 h-[calc(100vh-96px)] border-r bg-white shadow-lg overflow-y-auto">
         <table className="min-w-full font-bold text-center text-[11px]">
           <thead className="sticky top-0 bg-white">
             <tr>
