@@ -9,7 +9,6 @@ import {
 import LoadingSpinner from "../components/loadingSpinner"; // Import the LoadingSpinner component
 
 const AddProduct = () => {
-
   const processes = useSelector((state) => state.processes.processes);
   const [newStyles, setNewStyles] = useState([]);
   const [selectedProcesses, setSelectedProcesses] = useState({});
@@ -19,7 +18,6 @@ const AddProduct = () => {
   const [addLater, setAddLater] = useState(false); // New state for add later
 
   const dispatch = useDispatch();
-
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -31,7 +29,7 @@ const AddProduct = () => {
     console.log("addLater:", addLater);
     setLoading(true); // Set loading to true before starting the process
     let stylesWithProcesses;
-    if ( isAddLater) {
+    if (isAddLater) {
       console.log("Running Styles with processes for add later");
       // Push styleName but leave processes array empty
       stylesWithProcesses = newStyles.map((styleName) => ({
@@ -110,6 +108,28 @@ const AddProduct = () => {
   return (
     <div className="container mx-auto p-4">
       {loading && <LoadingSpinner />} {/* Show LoadingSpinner when loading */}
+      <div className="mb-8 mt-3">
+        <h2 className="text-xl font-bold mb-2">Instructions</h2>
+        <p className="text-gray-600 mb-4">
+          Please cross check these before adding new products:
+        </p>
+        <ul className="list-decimal ml-6 text-gray-700">
+          <li>
+            Headers are:{" "}
+            <ol className="list-disc ml-6 text-gray-700">
+              <li>SR NO.</li>
+              <li>BUYER PO</li>
+              <li>EX-FECT</li>
+              <li>ARTICLE</li>
+              <li>COLOUR</li>
+              <li>SIZE</li>
+              <li>QTY</li>
+            </ol>
+          </li>
+          <li>There should be no empty row in the data</li>
+          <li>Styling must be only there only on filled rows</li>
+        </ul>
+      </div>
       <div className="mb-8 mt-3">
         <h2 className="text-2xl font-bold mb-4">Import Excel File</h2>
         <input type="file" onChange={handleFileChange} className="mb-4" />
