@@ -5,7 +5,7 @@ import {
   updateProductionEntry,
   filterProductsByProcess,
 } from "../redux/slices/productionSlice";
-import LoadingSpinner from "./loadingSpinner";
+import LoadingSpinner from "../components/loadingSpinner";
 
 const ProductionData = () => {
   const dispatch = useDispatch();
@@ -86,6 +86,7 @@ const ProductionData = () => {
       column: column,
       position: { x: rect.left, y: rect.bottom },
     });
+    console.log(filterDialog);
   };
   const handleFilterInputChange = (e) => {
     const value = e.target.value;
@@ -93,6 +94,7 @@ const ProductionData = () => {
       ...prevValues,
       [filterDialog.column]: value,
     }));
+    console.log(filterDialog);
   };
   const closeDialog = () => {
     setFilterDialog({ visible: false, column: "", position: { x: 0, y: 0 } });

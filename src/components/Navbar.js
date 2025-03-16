@@ -11,6 +11,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     dispatch(logout()).then(() => {
+    setIsMenuOpen(false);
       navigate("/login");
     });
   };
@@ -64,14 +65,16 @@ const Navbar = () => {
           <ul className="font-medium flex flex-col p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:flex-row md:space-x-8 rtl:space-x-reverse md:mt-0 md:border-0 md:bg-white">
             {user && (
               <>
-                <li>
-                  <Link
-                    to="/"
-                    className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0"
-                  >
-                    Production Master Sheet
-                  </Link>
-                </li>
+                {user && user.userType !== "Merchant" && (
+                  <li>
+                    <Link
+                      to="/"
+                      className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0"
+                    >
+                      Production Master Sheet
+                    </Link>
+                  </li>
+                )}
                 <li>
                   <Link
                     to="/add-product"
@@ -80,14 +83,16 @@ const Navbar = () => {
                     Add Product
                   </Link>
                 </li>
-                <li>
-                  <Link
-                    to="/production-entry"
-                    className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0"
-                  >
-                    Production Entry
-                  </Link>
-                </li>
+                {user && user.userType !== "Merchant" && (
+                  <li>
+                    <Link
+                      to="/production-entry"
+                      className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0"
+                    >
+                      Production Entry
+                    </Link>
+                  </li>
+                )}
                 <li>
                   <Link
                     to="/styles-productions"
@@ -119,12 +124,12 @@ const Navbar = () => {
               </li>
             ) : (
               <li>
-                <button
+                <Link
                   onClick={handleLogout}
                   className="block py-2 px-3 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0"
                 >
                   Logout
-                </button>
+                </Link>
               </li>
             )}
           </ul>

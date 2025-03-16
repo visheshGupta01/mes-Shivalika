@@ -5,9 +5,9 @@ import {
   fetchProductions,
   submitProduction,
 } from "../redux/slices/productionsSlice";
-import LoadingSpinner from "./loadingSpinner";
-import ProductionModal from "./ProductionModal"; // Import the ProductionModal component
-import ProcessesModal from "./ProcessesModal";
+import LoadingSpinner from "../components/loadingSpinner";
+import ProductionModal from "../components/ProductionModal"; // Import the ProductionModal component
+import ProcessesModal from "../components/ProcessesModal";
 
 const StylesAndProductions = () => {
   const dispatch = useDispatch();
@@ -49,7 +49,7 @@ const StylesAndProductions = () => {
     setSelectedProductionData(data); // Save production data
 
     dispatch(submitProduction(data));
-console.log(productions)
+    console.log(productions);
     console.log("Saved Production Data:", data);
   };
   // Separate styles without processes from those with processes

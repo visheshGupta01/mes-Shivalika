@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { login, logout } from "../redux/slices/authSlice";
 
 const Login = () => {
@@ -9,7 +9,6 @@ const Login = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const location = useLocation();
   const { isLoading, error, user } = useSelector((state) => state.auth);
 
   useEffect(() => {
@@ -26,10 +25,10 @@ const Login = () => {
 
   useEffect(() => {
     if (user) {
-      const from = location.state?.from?.pathname || "/";
+      const from = user.userType === "Merchant"? "/add-product": "/";
       navigate(from, { replace: true });
     }
-  }, [user, navigate, location]);
+  }, [user, navigate]);
 
   const handleSubmit = (e) => {
     e.preventDefault();

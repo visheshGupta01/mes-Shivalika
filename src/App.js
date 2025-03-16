@@ -1,14 +1,14 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import Login from "./components/Login";
-import CreateUser from "./components/CreateUser";
-import MasterSheet from "./components/MasterSheet"; // example home component
-import Unauthorized from "./components/Unauthorized"; // example unauthorized component
+import Login from "./screens/Login";
+import CreateUser from "./screens/CreateUser";
+import MasterSheet from "./screens/MasterSheet"; // example home component
+import Unauthorized from "./screens/Unauthorized"; // example unauthorized component
 import PrivateRoute from "./components/PrivateRoute";
 import Navbar from "./components/Navbar";
-import AddProduct from "./components/AddProduct";
-import ProductionData from "./components/ProductionData";
-import StylesProductionsPage from "./components/stylesAndProductions";
+import AddProduct from "./screens/AddProduct";
+import ProductionData from "./screens/ProductionData";
+import StylesProductionsPage from "./screens/stylesAndProductions";
 
 const App = () => {
   return (
@@ -27,7 +27,7 @@ const App = () => {
         <Route
           path="/"
           element={
-            <PrivateRoute allowedUserTypes={["Admin"]}>
+            <PrivateRoute allowedUserTypes={["Admin","Management"]}>
               <MasterSheet />
             </PrivateRoute>
           }

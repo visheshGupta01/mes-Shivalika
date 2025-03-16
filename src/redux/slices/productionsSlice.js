@@ -4,7 +4,7 @@ import api from "../../api/axiosConfig";
 export const fetchProductions = createAsyncThunk(
   "productions/fetchProductions",
   async () => {
-    const response = await api.get("stylesAndProductions/productions");
+    const response = await api.get("/stylesAndProductions/productions");
     return response.data;
   }
 );
@@ -14,7 +14,7 @@ export const submitProduction = createAsyncThunk(
   async (productionData) => {
     console.log(productionData);
     const response = await api.post(
-      "http://localhost:5000/stylesAndProductions/submitProduction",
+      "/stylesAndProductions/submitProduction",
       {
         productionData,
       }

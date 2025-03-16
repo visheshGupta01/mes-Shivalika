@@ -5,10 +5,9 @@ export const login = createAsyncThunk(
   "auth/login",
   async ({ username, password }, thunkAPI) => {
     try {
-      console.log(api);
       const response = await api.post("/auth/login", { username, password });
-      sessionStorage.setItem("user", JSON.stringify(response.data.user)); // Store user in localStorage
-      sessionStorage.setItem("token", response.data.token); // Store token in localStorage
+      sessionStorage.setItem("user", JSON.stringify(response.data.user)); // Store user in sessionStorage
+      sessionStorage.setItem("token", response.data.token); // Store token in sessionStorage
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(
@@ -20,8 +19,8 @@ export const login = createAsyncThunk(
 );
 
 export const logout = createAsyncThunk("auth/logout", async (_, thunkAPI) => {
-  sessionStorage.removeItem("user"); // Remove user from localStorage
-  sessionStorage.removeItem("token"); // Remove user from localStorage
+  sessionStorage.removeItem("user"); // Remove user from sessionStorage
+  sessionStorage.removeItem("token"); // Remove user from sessionStorage
   return true;
 });
 
@@ -41,11 +40,8 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(login.fulfilled, (state, action) => {
-        console.log(action.payload); // Log the payload for debugging
-
         state.isLoading = false;
-  state.user = action.payload?.user || null;
-        console.log(state.user);
+        state.user = action.payload?.user || null;
         state.error = null;
       })
       .addCase(login.rejected, (state, action) => {

@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchOrders } from "../redux/slices/orderSlice";
 import moment from "moment";
 import api from "../api/axiosConfig";
-import LoadingSpinner from "./loadingSpinner";
+import LoadingSpinner from "../components/loadingSpinner";
 
 const MasterSheet = () => {
   const dispatch = useDispatch();
