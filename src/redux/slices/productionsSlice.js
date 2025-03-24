@@ -45,7 +45,7 @@ const productionsSlice = createSlice({
         state.error = action.error.message;
       })
       .addCase(submitProduction.pending, (state) => {
-        state.loading = true;
+        // state.loading = true;
         state.error = null;
       })
       .addCase(submitProduction.fulfilled, (state, action) => {
